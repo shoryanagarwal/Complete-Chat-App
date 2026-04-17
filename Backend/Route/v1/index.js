@@ -17,7 +17,7 @@ router.post('/chat/oneonone',authMiddleware,oneOnOneChat);
 router.get('/chat',authMiddleware,userChat);
 
 router.post('/message',authMiddleware,sendMessage);
-router.get('/message/:chatId',authMiddleware,getMessage);
+router.get('/message/:chatId',getMessage);
 
 
 

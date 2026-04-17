@@ -1,5 +1,5 @@
 const Chat=require('../Model/chat.js');
-
+const Message=require('../Model/message.js');
 
 // 1 on 1 chat
 
@@ -56,12 +56,12 @@ const oneOnOneChat=async(req,res)=>{
         
 
         // if chat does not exist create a new chat
-        console.log(req.user.id);
+        console.log(req.user._id);
         
         const newChat= await Chat.create({
             chatName:'',
             isGroupChat:false,
-            users:[req.user.id,userId]
+            users:[req.user._id,userId]
         })
 
         console.log(newChat);
@@ -209,9 +209,42 @@ const userChat=async(req,res)=>{
 }
 
 
+const getMessages=async(req,res)=>{
+
+    try {
+        
+
+        const {chatId}=req.params;
+
+       let messages = await Message.find({ chat: chatId })
+        .populate("sender", "username")
+        .populate("chat");
+         res.status(200).json({
+            success: true,
+            data: messages
+        });
+
+
+    } 
+    catch (error) {
+        console.log("unable to get messages");
+            return res.status(500).json({
+                success:false,
+                message:"unable to get messages",
+                data:{},
+                err:error
+             })
+    }
+
+
+
+}
+
+
 module.exports={
     oneOnOneChat,
     groupChat,
-    userChat
+    userChat,
+    getMessages
     
 }

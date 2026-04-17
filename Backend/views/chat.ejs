@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+</head>
+<body>
+
+    <h1>Chat Application</h1>
+    <input type="text" id="message_input" placeholder="Write a message...">
+    <button id="send_button">Send</button>
+
+    <ul id="messages">
+
+        <% for(let i=0;i<messages.length;i++) { %>
+        
+            <li><%=messages[i].user %> : <%=messages[i].content %></li>
+        <% } %>
+
+    </ul>
+
+
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+
+        const socket = io("http://localhost:5000");
+
+        const chatId= "<%= chatId %>"
+        const userId= "<%= user._id %>"
+
+
+        socket.on('connect',()=>{
+
+            socket.emit('join chat',chatId)
+               
+            
+            socket.emit('setup',{_id:userId});
+        })
+
+
+        socket.on("message received",(message)=>{
+           
+            addmessage(message.sender.username + " : " + message.content);
+        })
+
+
+        function addmessage(message){
+            const messagesList=document.getElementById("messages");
+            const newMessage=document.createElement("li");
+            newMessage.innerText=message;
+            messagesList.appendChild(newMessage);
+        }
+
+
+
+        const button=document.getElementById("send_button");
+        button.addEventListener('click',()=>{
+            const inputField=document.getElementById("message_input")
+            const input_msg=inputField.value
+            if(!input_msg){
+                return;
+            }
+
+
+            //send mesage to backend
+            console.log("sending message to backend",input_msg);
+
+            socket.emit("new message",{
+                content:input_msg,
+                chatId:chatId,
+                sender:{_id:userId}
+            })
+
+            inputField.value="";
+            
+
+        })
+
+
+
+
+        // for chats loading
+
+        async function laodChats(){
+
+            try {
+                const response=await fetch(`/api/v1/message/${chatId}`);
+                const data=await response.json();
+
+                if(data.success){
+                    const messages=data.chat.messages;
+                    for(let i=0;i<messages.length;i++){
+                        addmessage(messages[i].sender.username + " : " + messages[i].content);
+                    }
+                }
+
+
+            } catch (error) {
+                console.log(error);
+                
+
+            }
+
+
+
+
+        }
+
+
+        laodChats();
+
+    </script>
+  
+    
+</body>
+</html>
